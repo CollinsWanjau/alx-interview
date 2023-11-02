@@ -1,89 +1,94 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+"""N Queens placement on NxN chessboard"""
+
+
 import sys
-# Initialization
-def printSolution(board):
-    result = []
-    for i in range(N):
-        for j in range(N):
-            if board[i][j] == 1:
-                result.append([i, j])
-    # if all queens are placesd, print the placement of queens
-    print(result)
 
-def isSafe(board, row, col):
+
+def generate_solutions(row, column):
     """
-    - Used to determine if a queen can be placed on a given position on the
-    chessboard without being attacked by another queen
+    Generates all possible solutions for placing row number of queens
+    """
+    # Initialize an empty solution each represented as a list of column
+    # indices for each row
+    solution = [[]]
+    for queen in range(row):
+        # for each function it calls place_queen which returns all possible
+        # safe positions for the current queen.
+        solution = place_queen(queen, column, solution)
+    return solution
+
+
+def place_queen(queen, column, prev_solution):
+    """
+    Used to find all the safe positions for a given queen on a chessboard
+    """
+    safe_position = []
+    for array in prev_solution:
+        for x in range(column):
+            if isSafe(queen, x, array):
+                safe_position.append(array + [x])
+    return safe_position
+
+
+def isSafe(q, x, array):
+    """
+    Used to check if it's safe to place a queen at a specific column in
+    the current row
     Args:
-        - board
-        - row
-        - col
+        - q: current row
+        - x: current column
+        - array: current placement of queens in previous rows
     """
-    # checks all cells to the left in the same row
-    for i in range(col):
-        # if there's a queen in any of these cells, it's not safe
-        if board[row][i] == 1:
-            return False
-    
-    # checks each cell in the upper left diagonal from current cell
-    # specified by row and col.
-    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
-        # if any of these cells already has a queen, then it's not safe
-        # to place a queen at the current cell bec two queens cannot be in
-        # the same diagonal.
-        if board[i][j] == 1:
-            return False
-    
-    for i, j in zip(range(row, N, 1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return False
-    
-    return True
-
-def solveNQUtil(board, col):
-    """
-    BackTracking, placement and recursion
-    This function solves the NQueens problem. It tries to place a queen each
-    row of the current column and then recursively call itself for the next
-    column.
-    If it can't find a safe spot in the current column or if placing a queen
-    in the current spot leads to no solution, it backtracks by removing the
-    queen from the current spot and coninues to the next row
-    """
-    # Base Case: If all queens are placed then return true
-    if col >= N:
-        printSolution(board)
-        return True
-    res = False
-    # try placing this queen in all rows one by one
-    for i in range(N):
-        if isSafe(board, i, col):
-            board[i][col] = 1
-            # Recursion
-            res = solveNQUtil(board, col + 1) or res
-            # Backtracking
-            board[i][col] = 0
-    return res
-
-def solveNQ():
-    board = [[0 for _ in range(N)] for _ in range(N)]
-    if not solveNQUtil(board, 0):
+    if x in array:
         return False
-    return True
+    else:
+        """
+        for column in range(q) - Iterates over each column index up to the
+        current row q.
+        abs(array[column] - x) != q - column - checks if the absolute diff.
+        btw. the current column and the column of any other queen array[column]
+        is not equal to the diff. btw. their rows.This condition checks if the
+        current position is on the same diagonal with any other queen.
+        all() - this ensures that the condition inside is True  for all queens.
+        """
+        return all(abs(array[column] - x) != q - column
+                   for column in range(q))
 
-if len(sys.argv) != 2:
-    print('Usage: nqueens N')
-    sys.exit(1)
 
-try:
-    N = int(sys.argv[1])
-except ValueError:
-    print("N must be a number")
-    sys.exit(1)
+def init():
+    """
+    Initialize the program by checking the command line args and validating
+    them.
+    """
+    if len(sys.argv) != 2:
+        print("Usage: nqueens N")
+        sys.exit(1)
+    if sys.argv[1].isdigit():
+        n = int(sys.argv[1])
+    else:
+        print("N must be a number")
+        sys.exit(1)
+    if n < 4:
+        print("N must be at least 4")
+        sys.exit(1)
+    return (n)
 
-if N < 4:
-    print("N must be at least 4")
-    sys.exit(1)
 
-if __name__ == '__main__':
-    solveNQ()
+def n_queens():
+    """
+    Solves the N_Queens problem.
+    """
+    n = init()
+    # generate all solutions
+    solutions = generate_solutions(n, n)
+    # print solutions
+    for array in solutions:
+        clean = []
+        for q, x in enumerate(array):
+            clean.append([q, x])
+        print(clean)
+
+
+if __name__ == "__main__":
+    n_queens()
